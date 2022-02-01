@@ -5,7 +5,7 @@ Name:       Iiro Inkinen
 Email:      iiro.inkinen@tuni.fi
 
 Blackjack-game with graphical user interface.
-Advanced gui
+Advanced project
 
 Rules:
 - Player vs. Dealer (House).
@@ -43,8 +43,8 @@ import random
 
 # Variable for the number of decks in one shoe.
 SHOE_SIZE = 6
-# Matrix of the ideal moves that aren't obvious. Rows are dealer cards 1-10 and
-# columns are player total points 12-16.
+# Matrix of the ideal moves that aren't obvious. Rows are dealer cards ace-10
+# and columns are player total points 12-16.
 HINTS = [0,
          ["hit", "hit", "hit", "hit", "hit"],
          ["hit", "stand", "stand", "stand", "stand"],
@@ -374,8 +374,16 @@ class Userinterface:
 
     def check_total(self, person):
         """
+        Checks the total points of person. If dealers total is called before
+        it's their turn, returns only points for the visible card. Counts aces
+        as 11 by default and as 1 if persons total would surpass 21. Also
+        updates the text for points in the gui.
 
+        :param person: str, "Player" to check players total, with anything else
+                 checks dealers total.
+        :return: int, total points of person.
         """
+        # Check whose points are to be counted.
         if person == "Player":
             cards = self.__player_cards
             text = self.__player_text
@@ -383,19 +391,21 @@ class Userinterface:
         else:
             text = self.__dealer_text
 
+            # Removes the first card from dealers total before it's their turn.
             if not self.__dealers_turn:
                 cards = self.__dealer_cards[1:]
             else:
                 cards = self.__dealer_cards
 
+        # Variables for total points and total aces in hand.
         total = 0
         ace = 0
 
         for card in cards:
-
+            # If cards value is over 10, it's worth 10.
             if card[1] > 10:
                 points = 10
-
+            # In case of an ace, value is not added yet.
             elif card[1] == 1:
                 ace += 1
                 points = 0
@@ -404,39 +414,52 @@ class Userinterface:
                 points = card[1]
 
             total += points
-
+        # Check whether aces are count as 1 or 11.
         for card in range(ace):
 
             if total + 11 > 21:
                 total += 1
             else:
                 total += 11
-
+        # Update the gui text.
         text.configure(text=f"{person}: {total}")
 
         return total
 
     def ideal_move(self):
+        """
+        Displays the ideal move for player.
+        """
         player_total = self.check_total("Player")
         dealer_total = self.check_total("Dealer")
 
+        # Hints against dealers ace are stored with index 1.
         if dealer_total == 11:
             dealer_total = 1
 
+        # Handles the situations where the move doesn't depend on dealers card.
         if player_total < 12:
             move = "hit"
-
         elif player_total > 16:
             move = "stand"
 
+        # Reads the ideal move from HINTS-matrix.
         else:
             player_total -= 12
             move = HINTS[dealer_total][player_total]
 
+        # Displays the hint.
         self.__hint_text.configure(text=f"You should {move}.")
 
     def has_won(self, reason=""):
+        """
+        Checks who won the round and displays informative texts.
 
+        :param reason: str, used by methods that notice a win outside this
+                       method.
+        """
+        # Wins declared outside this method are Blackjack, player Bust and
+        # player 5 card Charlie.
         if reason == "blacjack":
             self.__result_text.configure(text="You won!")
             self.__player_score += 1
@@ -450,22 +473,24 @@ class Userinterface:
             self.__result_text.configure(text="You won!")
             self.__player_score += 1
 
+        # If the winner hasn't been decided yet, checks for:
         else:
+            # If dealer has busted
             if self.check_total("Dealer") > 21:
                 self.__info_text.configure(text="House busts")
                 self.__result_text.configure(text="You won!")
                 self.__player_score += 1
-
+            # If dealer has a 5 card Charlie
             elif len(self.__dealer_cards) == 5:
                 self.__info_text.configure(text="5 card Charlie")
                 self.__result_text.configure(text="House wins!")
                 self.__dealer_score += 1
-
+            # If player has bigger hand than dealer
             elif self.check_total("Dealer") < self.check_total("Player"):
                 self.__info_text.configure(text="You have a bigger hand")
                 self.__result_text.configure(text="You won!")
                 self.__player_score += 1
-
+            # If dealer has bigger hand than player.
             else:
                 self.__info_text.configure(text="House has a bigger hand")
                 self.__result_text.configure(text="House wins!")
@@ -474,6 +499,10 @@ class Userinterface:
         self.end_of_round()
 
     def end_of_round(self):
+        """
+        Ends the current round. Updates scoreboard, disables "Hit" and "Stand"
+        buttons and activates "Deal" button.
+        """
         self.__player_score_text.configure(text=f"Player: {self.__player_score}")
         self.__dealer_score_text.configure(text=f"House: {self.__dealer_score}")
         self.__hint_text.configure(text="")
@@ -483,6 +512,12 @@ class Userinterface:
         self.__next_round_button.configure(state=NORMAL)
 
     def next_round(self):
+        """
+        Starts a new round. Empties both hands and enables "Hit" and "Stand"
+        buttons. Disables "Deal" button. Calls for <self.deal> to deal the
+        new hand.
+        """
+        # Empty image to replace the card pictures in both hands.
         empty_image = PhotoImage(width=150, height=218)
 
         self.__d1_photo.configure(image=empty_image)
@@ -497,25 +532,36 @@ class Userinterface:
         self.__p4_photo.configure(image=empty_image)
         self.__p5_photo.configure(image=empty_image)
 
+        # It's players turn again.
         self.__dealers_turn = False
+
+        # Display text for the started hand.
         self.__info_text.configure(text="New hand!")
         self.__result_text.configure(text="")
 
+        # Player can hit and stand again.
         self.__hit_button.configure(state=NORMAL)
         self.__stand_button.configure(state=NORMAL)
         self.__next_round_button.configure(state=DISABLED)
 
+        # Empty both hands.
         self.__player_cards = []
         self.__dealer_cards = []
         self.deal()
 
     def new_game(self):
+        """
+        Starts a new game. Empties both hands, refills the deck and resets
+        win counters. Calls for <self.deal> to deal the new hand.
+        """
+        # Refill the deck.
         for suit in self.__suits:
             self.__deck[suit] = {}
 
             for number in self.__numbers:
                 self.__deck[suit][number] = SHOE_SIZE
 
+        # Display empty images for cards.
         empty_image = PhotoImage(width=150, height=218)
 
         self.__d1_photo.configure(image=empty_image)
@@ -530,24 +576,35 @@ class Userinterface:
         self.__p4_photo.configure(image=empty_image)
         self.__p5_photo.configure(image=empty_image)
 
+        # Player starts the game.
         self.__dealers_turn = False
+
+        # Since it's a new game the player is greeted.
         self.__info_text.configure(text="Welcome, let's play!")
         self.__result_text.configure(text="")
 
+        # Resets win counter.
         self.__player_score = 0
         self.__dealer_score = 0
         self.__player_score_text.configure(text="Player: 0")
         self.__dealer_score_text.configure(text="House: 0")
 
+        # Player can hit and stand, but a hand will be dealt automatically.
         self.__hit_button.configure(state=NORMAL)
         self.__stand_button.configure(state=NORMAL)
         self.__next_round_button.configure(state=DISABLED)
 
+        # Empty both hands.
         self.__player_cards = []
         self.__dealer_cards = []
+
+        # Deal the first hand.
         self.deal()
 
     def out_of_cards(self):
+        """
+        Fills the deck again in case we run out of cards.
+        """
         for suit in self.__suits:
             self.__deck[suit] = {}
 
