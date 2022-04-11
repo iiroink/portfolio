@@ -1,0 +1,5 @@
+games
+main.o
+Makefile
+.qmake.stash
+data

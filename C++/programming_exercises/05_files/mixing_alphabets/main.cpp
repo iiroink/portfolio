@@ -1,0 +1,36 @@
+#include <iostream>
+#include <string>
+#include <algorithm>
+#include <random>
+
+int main()
+{
+    // This is a random number generator that should be given as parameter to the
+    // function of the algorithm library to shuffle letters
+    std::minstd_rand generator;
+
+    std::cout << "Enter some text. Quit by entering the word \"END\"." << std::endl;
+    std::string word;
+
+    while (std::cin >> word)
+    {
+        if (word == "END")
+        {
+            return EXIT_SUCCESS;
+        }
+        else if (word.length() == 1)
+        {
+            std::cout << word << std::endl;
+        }
+        else
+        {
+        std::string::iterator second(word.begin());
+        std::string::iterator last(word.end());
+        ++second;
+        --last;
+
+        std::shuffle(second, last, generator);
+        std::cout << word << std::endl;
+        }
+    }
+}

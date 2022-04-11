@@ -1,0 +1,6 @@
+*.pro.user
+line_numbers
+main.o
+Makefile
+tst
+.qmake.stash
