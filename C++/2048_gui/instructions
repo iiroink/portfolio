@@ -1,0 +1,79 @@
+Käyttöohje:
+
+Pelaaminen:
+- Käynnistettäessä pelin käyttäjältä kysytään siemenluku ja tavoitelukuun tarvittava kakkosen potenssi (2^?).
+- Peliruudukkoa liikutetaan wasd- tai nuolinäppäimillä.
+- "reset game"-näppäin nollaa pelin, jonka jälkeen voi syöttää uuden siemen- ja tavoiteluvun.
+- "pause"-näppäin pysäyttää kellon.
+- Ohjelma ilmoittaa pelin päättymisestä.
+
+Säännöt:
+- Kun painat näppäintä, kaikki ruudut liikkuvat sen osoittamaan suuntaan niin pitkälle kuin pääsevät.
+- Jos ruutu törmää toiseen ruutuun, jossa on sama luku, ruudut yhdistyvät. Uuteen ruutuun tuleva luku on yhdistettyjen lukujen summa.
+- Jokaisen painalluksen jälkeen ruudukkoon ilmestyy uusi kakkonen (riippumatta siitä tapahtuiko mitään).
+- Voitat pelin saamalla mihin tahansa ruutuun tavoiteluvun suuruisen luvun.
+- Häviät pelin, jos ruudukko täyttyy (vaikka voisit yhä tehdä tilaa yhdistämällä ruutuja).
+
+
+Ominaisuudet:
+
+Pelaajalta kysytään satunnaislukugeneraattorin siemenluku ja tavoiteluvun kakkosen potenssi:
+Pelin käynnistyessä nämä kysytään automaattisesti. Lisäksi resetin yhteydessä voi halutessaan antaa uudet arvot.
+Pelin aikana arvojen muuttamista ei koettu tarpeelliseksi. Luvut kysytään omissa erillisissä ponnahdusikkunoissaan, jolloin on selvää, milloin uuden luvun voi antaa. Katso lisäksi "Ylimääräinen" lisäominaisuus.
+
+Peliruudukon näyttäminen:
+Peliruudukko näytetään pelaajalle sivun alareunassa. Suoraan ruudukon kanssa ei voi tehdä mitään, mutta näppäinsyötteet liikuttavat alustan ruutuja. Nollan sisältävät ruudut näkyvät pelaajalle tyhjinä.
+Jokainen ruutu koostuu taustasta ja numerosta. Numerot saadaan pelimoottorilta Numbertile-luokalle lisätyllä get_value-metodilla, joka kertoo kyseisessä ruudussa olevan numeron.
+
+Siirtosuunan valitseminen:
+Siirtosunnan voi valita sekä wasd- että nuolinäppäimillä.
+Ohjelma antaa näppäinsyöteprioriteetin siirtosuunnan valitsemiselle aina, kun ollaan pääikkunassa.
+
+Voitosta/häviöstä kertominen:
+Voiton tai häviön merkiksi käyttäjälle näytetään teksti. Pelin päätyttyä näppäinsyötteitä ei enää hyväksytä.
+
+Peli toimii vaihtelevalla määrällä ruutuja:
+Vaihtamalla gameboard.hh -tiedoston SIZE-vakiota voi peliruudukon kokoa muuttaa. Jos näytölle haluaa saada yli 7x7 ruudukon, on syytä pienentää myös mainwindow.hh -tiedoston SQUARE_SIZE-vakiota. Vastaavasti, jos välttämättä haluaa pelata 2x2-ruudukolla, on SQUARE_SIZE vakiota syytä kasvattaa.
+Peli on suunniteltu pelattavaksi 4x4 ruudukolla, mutta kokoa voi myös manuaalisesti vaihtaa. Käyttöliittymä mukautuu valittuun pelilaudan kokoon, jotta pelikokemus pysyy samanlaisena.
+
+Mahdollisuus aloittaa peli uudestaan:
+Käyttöliittymässä on "reset game"-nappula, josta pelin voi nollata. Vahinkojen välttämiseksi käyttäjää pyydetään varmistamaan resettaus ponnahdusikkunassa. Jos käyttäjä vahvistaa resetin, kysytään häneltä uudessa ponnahdusikkunassa, haluaako hän asettaa uuden siemen- ja tavoiteluvun. Myönteisen vastauksen tapauksessa suoritetaan ensimmäisen ominaisuuden kaltainen prosessi. Poikkeuksena alustuksesta ei luoda uusia NumberTile-olioita vaan asetetaan vain niiden arvot nollaksi.
+
+
+Lisäominaisuudet:
+
+Eri luvuilla on eri värit (10 p.):
+Pelilaudan ruutu muuttaa väriä ruudussa olevan numeron mukaan. Numeroille 0-256 väri muuttuu likuen valkoisesta siniseen, ja numerosta 512 alkaen värit ovat kirkastuvan keltaisia numeroon 2048 asti. Tästä eteenpäin kaikki numerot ovat kultaisia.
+Värit on tallennettu omaan tietorakenteeseen numeroihin yhdistettynä. Peliruudukon päivityksen yhteydessä jokaiselle numerolle etsitään listasta oikea taustaväri ja päivitetään tämä.
+
+Pelissä on ajastin, joka kertoo siihen mennessä käytetyn ajan (5 p.):
+Ajastin näyttää pelaajan kuluttamat minuutit ja sekunnit. Ajastin nollataan pelin resetin yhteydessä.
+Mikäli peliä aikoo pelata tuntikaupalla, kannattaa valmistautua merkkaamaan 1h 40min välein, että ajastin on pyörähtänyt ympäri. Yksinkertaisuuden nimissä ajastin näyttää minuutit lukuun 99 asti. Tämän jälkeen ajastin näyttää jälleen 0 minuuttia (koska luku 100 ei mahdu näkyviin). Lähtökohtaisesti näin pitkiä pelejä ei odoteta, mutta ajastin periaattessa toimii vielä pidempäänkin.
+
+Pelissä on pistelasku (10 p.):
+Peli laskee käyttäjän keräämät pisteet ja näyttää ne jatkuvasti pelaajalle. Pisteitä saa sen mukaan, kuinka suuret luvut saa yhdistettyä. Esimerkiksi yhdistämällä kaksi numeroa 8 saa 8+8=16 pistettä lisää.
+Tämäntyylinen pistelasku oli yksinkertaisinta suorittaa välittämällä Numbertile-luokan numeroiden yhdistämisestä vastaavalle metodille parametrina luku, johon pisteet asetetaan. Kyseinen metodi ei siis toimi ilman muutoksia ASCII-käyttöliittymällä, mutta käsittääkseni se oli tässä kohdassa sallittua.
+
+Uusien lukujen ilmestyminen on toteutettu hidastetusti ajastinta käyttäen (15 p.):
+Uudet luvut ilmaantuvat 250 ms sen jälkeen, kun ruudut ovat liikkuneet pelilaudalla. Tänä aikana näppäinkomentoja ei sallita, mutta käyttöliittymän muut ominaisuudet toimivat.
+Haluttaessa uusi luku kutsutaan metodia, joka vain käynnistää ajastimen. Ajastimen timeout-signaali on kytketty slotsiin, joka pysäyttää ajastimen ja hoitaa uuden luvun lisäämisen.
+
+Ohjelma ei salli tavoitteeksi muita kuin kakkosen potensseja (5 p.):
+Ohjelma kysyy pelaajalta maaliluvun kakkosen potenssin. Ohjelma tarkastaa, että potenssi on positiivinen ja saavutettavissa valitulla ruudukkokoolla. Epäpätevän potenssin tapauksessa tavoitetta ei päivitetä, eli aiemmin annettu tavoite säilyy tai käytetään oletustavoitetta.
+
+Taustaväri vaihtuu, kun pelaaja voittaa tai häviää (10 p.):
+Peliruudukon taustaväri muuttuu kultaiseksi pelaajan voitettua ja punaiseksi pelaajan hävittyä. Resetin yhteydessä väri palaa normaaliksi.
+Ohjeessa taustaväri muutettiin pääikkunaan, mutta koin peliruudukon taustavärin muuttamisen olevan miellyttävämmän näköinen muutos.
+
+Pelissä on pause-ominaisuus (10 p.):
+Pääikkunnassa on pause-nappi, jota painamalla ajanotto pysähtyy. Näppäinkomentoja ei vastaanoteta pausen aikana. Pausen merkiksi näppäin jää pohjaan, peliruudukko muuttuu harmaaksi ja näytölle ilmestyy teksti "paused". Painamalla nappia uudestaan peli jatkuu. Pelin päätyttyä pause-nappi muuttuu käyttökelvottomaksi.
+
+"Ylimääräinen" lisäominaisuus (20 p.):
+Nuoli- ja wasd-näppäimiä käytetään ensisijaisesti peliruudukon liikkuttamiseen. Pääikkunassa ei ole syöttölaatikoita, jotka hyväksyisivät näppäimistökomentoja, vaan siemenluku ja maalinumero kysytään ponnahdusikkunoissa. Lisäksi painonappien painamisen jälkeen näppäinsyötteiden focus palautetaan pääikkunalle.
+
+
+Ohjelman rakenne ja suunnittelupäätökset, jotka eivät vielä tulleet esille:
+- Ohjelma on toteutettu suurimmilta osin Mainwindow-osaan. Pelimoottoriin on lisätty mahdollisuus ruudussa olevan numeron selvittämiseen ja peliruudukon nollaamiseen sekä pisteidenlaskuominaisuus. Nämä on dokumentoitu ylempänä.
+- Graafisen peliruudukon päivittämiseksi luodaan kaksi matriisia. Ensimmäiseen tallennetaan osoittimet numeroihin (QLabel) ja toiseen ruutuihin (QGraphicsRectItem).
+- Ohjelmassa on kaksi bool-muuttujaa, jotka eivät näy käyttäjälle mitenkään: hasMoved_ ja isGameOn_. Näitä käytetään varmistamaan, ettei pelaaja voi esimerkiksi tehdä siirtoja ennen kuin uusi numero on lisätty tai jos peli on päättynyt.
+- Kaikki käyttöliittymän osat on sijoiteltu suhteessa peliruudukkoon.
